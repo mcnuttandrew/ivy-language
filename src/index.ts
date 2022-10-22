@@ -75,8 +75,8 @@ export default function evaluateIvyProgram(
 }
 
 /**
- * Apply values from templatemap (specification) to template
- * Important to do it this way and not via json parse because values might be parts of strings
+ * Apply values from templateMap (specification) to template
+ * Important to do it this way and not via JSON.parse() because values might be parts of strings
  * Example {"field": "datum["[VARIABLENAME]"]}
  * @param code
  * @param templateMap - the specification/variable values defined by the gui
@@ -87,22 +87,25 @@ export const setTemplateValues = (
 ): string => {
   const filledInSpec = Object.entries(templateMap).reduce(
     (acc: string, row) => {
-      const [key, value] = row as [string, string];
-      const reWith = new RegExp(`"\\[${key}\\]"`, "g");
-      const reWithout = new RegExp(`\\[${key}\\]`, "g");
+      const [paramName, value] = row as [string, string];
+      const reWithQuotes = new RegExp(`"\\[${paramName}\\]"`, "g");
+      const reWithoutQuotes = new RegExp(`\\[${paramName}\\]`, "g");
       // AM: not sure about this isArray biz
       if (!Array.isArray(value) && trim(value) !== value) {
-        // this supports the weird HACK required to make the interpolation system
-        // not make everything a string
+        // The value to substitute in starts and ends with quotes.
+        // We handle this carefully: if the parameter name was not enclosed in quotes in the template,
+        // then we remove the quotes from the value before substituting it in.
+        // This allows values to be inserted into the generated JSON as datatypes other than strings.
+        // See the unit tests for some examples of the resulting behaviour.
         return acc
-          .replace(reWith, value || "null")
-          .replace(reWithout, trim(value as string) || "null");
+          .replace(reWithQuotes, value || "null")
+          .replace(reWithoutQuotes, trim(value as string) || "null");
       }
       const setVal =
         (Array.isArray(value) && JSON.stringify(value)) || value || "null";
       return acc
-        .replace(reWith, setVal as string)
-        .replace(reWithout, setVal as string);
+        .replace(reWithQuotes, setVal as string)
+        .replace(reWithoutQuotes, setVal as string);
     },
     code
   );
@@ -167,7 +170,7 @@ export function applyConditionals(
     if (!(typeof spec === "object" && spec !== null)) {
       return spec;
     }
-    // if the object being consider is itself a conditional evaluate it
+    // if the object being considered is itself a conditional then evaluate it
     // OLD SYNTAX
     if (typeof spec === "object" && spec.$cond) {
       const valueMap = spec as unknown as IvyLangConditional;
@@ -248,7 +251,7 @@ function shouldUpdateContainerWithValue(
   queryResult: "true" | "false",
   conditional: ConditionalArgs
 ): boolean {
-  // if a conditional doesn't want that value to get added to the traversing object then ingnore it
+  // if a conditional doesn't want that value to get added to the traversing object then ignore it
   return !Object.keys(conditional).includes(queryResult);
 }
 
@@ -278,6 +281,7 @@ function evaluateQuery(
 }
 
 function prepareFunction(query: string, templateMap: TemplateMap): string {
+  // prepend query by statements assigning each attribute of paramValues to a const variable with the corresponding name
   return `
         ${Object.keys(templateMap)
           .map((key) => key.replace(/(_|\W)/g, ""))
@@ -301,7 +305,7 @@ function tryToComputeKey(query: string, templateMap: TemplateMap): string {
 }
 
 // setting dimensions requires that dimension name be wrapped in a string
-// here we strip them off so that the channel cencoding can find the correct value
+// here we strip them off so that the channel encoding can find the correct value
 export function trim(dimName: string): string {
   if (!dimName || dimName.length < 2) {
     return dimName;
