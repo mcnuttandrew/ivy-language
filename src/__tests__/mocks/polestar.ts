@@ -1,4 +1,4 @@
-import { TemplateMap } from "../ivy-lang";
+import { TemplateMap } from "../..";
 export const PolestarDefaultParams: TemplateMap = {
   Color: null,
   ColorAgg: '"none"',

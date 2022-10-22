@@ -1,6 +1,6 @@
 # Ivy Language
 
-This is an exported version of the evaluator for the [Ivy](https://github.com/mcnuttandrew/ivy) template language. It exposes one method, evaluateIvyProgram, which takes in a string containing the body of an Ivy template as well as an object to apply to that body, and returns a JSON. It has a type signature like `evaluateIvyProgram(body: string, settings: Record<string, any>) => Json`. Pretty simple right?
+This is an exported version of the evaluator for the [Ivy](https://github.com/mcnuttandrew/ivy) template language. It exposes one method, evaluateIvyProgram, which takes in a string containing the body of an Ivy template as well as an object to apply to that body, and returns a JSON. It has a type signature like `evaluateIvyProgram(body: string, settings: Record<string, any>) => Json`.
 
 Aiming to be modular, this library does not include the rendering component of the Ivy system, instead only serving up the system for converting the ivy language into something processable by another entity.
 
@@ -10,7 +10,8 @@ The basic idea of the language is that it combines JSON with a series of simple 
 
 ```js
 import evaluateIvyProgram from "ivy-language";
-const settings = { xDim: "Origin", sort: "false" };
+// note that strings need to be wrapped as they are evaluated as raw otherwise!!
+const settings = { xDim: '"Origin"', sort: "false" };
 const body = {
   $schema: "https:vega.github.io/schema/vega-lite/v4.json",
   transform: [],
@@ -24,7 +25,7 @@ const body = {
   },
   mark: "bar",
 };
-const output = evaluateIvyProgram(body, settings);
+const output = evaluateIvyProgram(JSON.stringify(body), settings);
 ```
 
 Where output equals:
@@ -32,15 +33,17 @@ Where output equals:
 ```js
 {
   "$schema": "https:vega.github.io/schema/vega-lite/v4.json",
-  "transform": [],
   "encoding": {
-    "y": {
-        "field": "Origin",
-        "type": "nominal"
+    "x": {
+      "aggregate": "count",
     },
-    "x": {"aggregate": "count"}
+    "y": {
+      "field": "Origin",
+      "type": "nominal",
+    },
   },
-  "mark": "bar"
+  "mark": "bar",
+  "transform": [],
 }
 ```
 

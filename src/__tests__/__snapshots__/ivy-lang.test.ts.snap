@@ -134,6 +134,23 @@ exports[`#applyConditionals 2`] = `
 }
 `;
 
+exports[`Docs Test 1`] = `
+{
+  "$schema": "https:vega.github.io/schema/vega-lite/v4.json",
+  "encoding": {
+    "x": {
+      "aggregate": "count",
+    },
+    "y": {
+      "field": "Origin",
+      "type": "nominal",
+    },
+  },
+  "mark": "bar",
+  "transform": [],
+}
+`;
+
 exports[`evaluateIvyProgram polestar template 1`] = `
 {
   "$schema": "https:vega.github.io/schema/vega-lite/v4.json",

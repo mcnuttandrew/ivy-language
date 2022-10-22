@@ -1,11 +1,3 @@
-import { trim } from "./utils";
-
-/**
- * Type necessary to define the validator pull over here
- * in order to prevent stack overflow on the schema builder
- */
-export type DataType = "MEASURE" | "DIMENSION" | "TIME" | "CUSTOM";
-
 /**
  * A widget Condition query, executed raw javascript. Parameter values (the value of the current ui)
  * is accessed through parameters.VALUE. E.g. if you wanted to construct a predicate that check if
@@ -61,7 +53,7 @@ export interface NewIvyConditional {
  * @param code - string. ivy template as string to be interpreted
  * @param templateMap - the specification/variable values defined by the gui
  */
-export function evaluateIvyProgram(
+export default function evaluateIvyProgram(
   code: string,
   templateMap: TemplateMap
 ): Json {
@@ -95,7 +87,7 @@ export const setTemplateValues = (
 ): string => {
   const filledInSpec = Object.entries(templateMap).reduce(
     (acc: string, row) => {
-      const [key, value] = row;
+      const [key, value] = row as [string, string];
       const reWith = new RegExp(`"\\[${key}\\]"`, "g");
       const reWithout = new RegExp(`\\[${key}\\]`, "g");
       // AM: not sure about this isArray biz
@@ -141,7 +133,7 @@ export function applyConditionals(
       return spec.reduce((acc: JsonArray, child) => {
         // OLD SYNTAX
         if (child && typeof child === "object" && (child as JsonMap).$cond) {
-          const valueMap = (child as unknown) as IvyLangConditional;
+          const valueMap = child as unknown as IvyLangConditional;
           const queryResult = evaluateQuery(valueMap.$cond.query, templateMap)
             ? "true"
             : "false";
@@ -153,14 +145,14 @@ export function applyConditionals(
         }
         // NEW SYNTAX
         if (child && typeof child === "object" && (child as JsonMap).$if) {
-          const valueMap = (child as unknown) as NewIvyConditional;
+          const valueMap = child as unknown as NewIvyConditional;
           const queryResult = evaluateQuery(valueMap.$if, templateMap)
             ? "true"
             : "false";
           if (
             !shouldUpdateContainerWithValue(
               queryResult,
-              (valueMap as unknown) as ConditionalArgs
+              valueMap as unknown as ConditionalArgs
             )
           ) {
             return acc.concat(walker(valueMap[queryResult] as Json));
@@ -178,7 +170,7 @@ export function applyConditionals(
     // if the object being consider is itself a conditional evaluate it
     // OLD SYNTAX
     if (typeof spec === "object" && spec.$cond) {
-      const valueMap = (spec as unknown) as IvyLangConditional;
+      const valueMap = spec as unknown as IvyLangConditional;
       const queryResult = evaluateQuery(valueMap.$cond.query, templateMap)
         ? "true"
         : "false";
@@ -190,14 +182,14 @@ export function applyConditionals(
     }
     // NEW SYNTAX
     if (typeof spec === "object" && spec.$if) {
-      const valueMap = (spec as unknown) as NewIvyConditional;
+      const valueMap = spec as unknown as NewIvyConditional;
       const queryResult = evaluateQuery(valueMap.$if, templateMap)
         ? "true"
         : "false";
       if (
         !shouldUpdateContainerWithValue(
           queryResult,
-          (valueMap as unknown) as ConditionalArgs
+          valueMap as unknown as ConditionalArgs
         )
       ) {
         return walker(valueMap[queryResult] as Json);
@@ -215,7 +207,7 @@ export function applyConditionals(
         if (value && typeof value === "object" && (value as JsonMap).$cond) {
           // OLD SYNTAX
           // if it's a conditional, if so execute the conditional
-          const valueMap = (value as unknown) as IvyLangConditional;
+          const valueMap = value as unknown as IvyLangConditional;
           const queryResult = evaluateQuery(valueMap.$cond.query, templateMap)
             ? "true"
             : "false";
@@ -229,14 +221,14 @@ export function applyConditionals(
         ) {
           // NEW SYNTAX
           // if it's a conditional, if so execute the conditional
-          const valueMap = (value as unknown) as NewIvyConditional;
+          const valueMap = value as unknown as NewIvyConditional;
           const queryResult = evaluateQuery(valueMap.$if, templateMap)
             ? "true"
             : "false";
           if (
             !shouldUpdateContainerWithValue(
               queryResult,
-              (valueMap as unknown) as ConditionalArgs
+              valueMap as unknown as ConditionalArgs
             )
           ) {
             acc[computedKey] = walker(valueMap[queryResult] as Json);
@@ -306,4 +298,16 @@ function tryToComputeKey(query: string, templateMap: TemplateMap): string {
     console.log("Key Evaluation Error", e, query, templateMap);
   }
   return `${result}`;
+}
+
+// setting dimensions requires that dimension name be wrapped in a string
+// here we strip them off so that the channel cencoding can find the correct value
+export function trim(dimName: string): string {
+  if (!dimName || dimName.length < 2) {
+    return dimName;
+  }
+  if (dimName[0] === '"' && dimName[dimName.length - 1] === '"') {
+    return dimName.slice(1, dimName.length - 1);
+  }
+  return dimName;
 }
