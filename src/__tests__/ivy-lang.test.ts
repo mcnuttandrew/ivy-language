@@ -1,7 +1,6 @@
 import { expect, test } from "@jest/globals";
 
-import { applyConditionals, evaluateIvyProgram } from "../src/ivy-lang";
-import { TemplateMap } from "./ivy-lang";
+import evaluateIvyProgram, { applyConditionals, TemplateMap } from "..";
 import ScatterplotCode from "./mocks/scatterplot";
 import { PolestarDefaultParams, POLESTAR_BODY } from "./mocks/polestar";
 
@@ -49,4 +48,24 @@ test("evaluateIvyProgram polestar template", () => {
     draftState.ColorAggSimple = '"count"';
   });
   expect(evaluateIvyProgram(POLESTAR_BODY, templateMap3)).toMatchSnapshot();
+});
+
+test("Docs Test", () => {
+  const settings = { xDim: '"Origin"', sort: "false" };
+  const body = {
+    $schema: "https:vega.github.io/schema/vega-lite/v4.json",
+    transform: [],
+    encoding: {
+      y: {
+        field: "[xDim]",
+        type: "nominal",
+        sort: { $if: "parameters.sort.includes('true')", true: "-x" },
+      },
+      x: { aggregate: "count" },
+    },
+    mark: "bar",
+  };
+  console.log(JSON.stringify(body));
+  const output = evaluateIvyProgram(JSON.stringify(body), settings);
+  expect(output).toMatchSnapshot();
 });
