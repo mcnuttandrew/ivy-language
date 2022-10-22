@@ -127,8 +127,8 @@ function inferFieldTransformationSuggestions(
         simpleReplace: false,
         sideEffect: (setTemplateValues) => {
           setTemplateValues({
-            paramValues: { [suggestedNewWidgetName]: `"${from}"` },
-            systemValues: { viewsToMaterialize: {}, dataTransforms: [] },
+            [suggestedNewWidgetName]: `"${from}"`,
+            dataTransforms: [],
           });
           return DataTargetFactory(
             containsFromNameAlready

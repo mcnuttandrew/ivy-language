@@ -58,6 +58,7 @@ function VegaLiteRenderer(props: RendererProps): JSX.Element {
   ) {
     finalSpec.data = { values: data };
   }
+  console.log("final", finalSpec);
   return (
     <VegaLite
       actions={true}
@@ -105,7 +106,7 @@ export function tryToGuessTheTypeForVegaLite(
   const dims = (typeWidget.config as ListWidget).allowedValues;
 
   if (column && column.type === "DIMENSION" && dims.find(listFind("nominal"))) {
-    templateMap.paramValues[`${payload.field}Type`] = '"nominal"';
+    templateMap[`${payload.field}Type`] = '"nominal"';
   }
 
   if (
@@ -113,11 +114,11 @@ export function tryToGuessTheTypeForVegaLite(
     column.type === "MEASURE" &&
     dims.find(listFind("quantitative"))
   ) {
-    templateMap.paramValues[`${payload.field}Type`] = '"quantitative"';
+    templateMap[`${payload.field}Type`] = '"quantitative"';
   }
 
   if (column && column.type === "TIME" && dims.find(listFind("temporal"))) {
-    templateMap.paramValues[`${payload.field}Type`] = '"temporal"';
+    templateMap[`${payload.field}Type`] = '"temporal"';
   }
 }
 

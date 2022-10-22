@@ -72,8 +72,8 @@ export function get(obj: any, route: (string | number)[]): any {
 
 const DUMMY = "xxxxxEXAMPLExxxx";
 export function generateFullTemplateMap(widgets: GenWidget[]): TemplateMap {
-  const paramValues = widgets.reduce(
-    (acc: { [x: string]: any }, widget: GenWidget) => {
+  return widgets.reduce(
+    (acc: TemplateMap, widget: GenWidget) => {
       const widgetType = widget.type;
       if (widgetType === "DataTarget") {
         acc[widget.name] = `"${DUMMY}"`;
@@ -97,13 +97,8 @@ export function generateFullTemplateMap(widgets: GenWidget[]): TemplateMap {
       }
       return acc;
     },
-    {}
+    { dataTransforms: [] }
   );
-
-  return {
-    paramValues,
-    systemValues: { viewsToMaterialize: {}, dataTransforms: [] },
-  };
 }
 
 export const toList = (list: string[]): { display: string; value: string }[] =>

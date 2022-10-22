@@ -1,9 +1,5 @@
-// import { GenericAction } from "./actions/index";
-import { DataType, Template, GenWidget } from "./ivy-lang";
+import { DataType, Template, GenWidget, TemplateMap } from "./ivy-lang";
 
-export type GenericAction<A> = any;
-// import * as LangType from "./lang-types";
-// export * from "./lang-types";
 /**
  * The meta data for a particular data column.
  *
@@ -89,7 +85,6 @@ export interface AppState {
   templateMap: TemplateMap;
   templates: Template[];
 }
-export type ViewsToMaterialize = { [x: string]: string[] };
 /**
  * @param T the type of payload argument
  */
@@ -101,22 +96,12 @@ export interface DataReducerState {
   data: { [x: string]: any }[];
 }
 
-export interface TemplateMap {
-  paramValues: {
-    [key: string]: string | string[];
-  };
-  systemValues: {
-    dataTransforms: DataTransform[];
-    viewsToMaterialize: ViewsToMaterialize;
-  };
-}
-
 export interface Suggestion {
   from: string;
   to: string;
   comment: string;
   sideEffect?: (
-    setAllTemplateValues?: GenericAction<TemplateMap>
+    setAllTemplateValues?: (updatedTemplateMap: TemplateMap) => null
   ) => GenWidget | null;
   codeEffect?: (code: string) => string;
   simpleReplace: boolean;

@@ -165,16 +165,10 @@ export interface Condition {
 
 /* eslint-disable no-new-func */
 export interface TemplateMap {
-  paramValues: {
-    [key: string]: string | string[];
-  };
-  systemValues: {
-    dataTransforms: DataTransform[];
-    viewsToMaterialize: ViewsToMaterialize;
-  };
+  dataTransforms: DataTransform[];
+  [key: string]: string | string[] | DataTransform[];
 }
 
-export type ViewsToMaterialize = { [x: string]: string[] };
 /**
  * vega transform syntax
  */
@@ -239,9 +233,9 @@ export const setTemplateValues = (
   code: string,
   templateMap: TemplateMap
 ): string => {
-  const filledInSpec = Object.entries(templateMap.paramValues).reduce(
+  const filledInSpec = Object.entries(templateMap).reduce(
     (acc: string, row) => {
-      const [key, value]: [string, string | string[] | null] = row;
+      const [key, value] = row;
       const reWith = new RegExp(`"\\[${key}\\]"`, "g");
       const reWithout = new RegExp(`\\[${key}\\]`, "g");
       // AM: not sure about this isArray biz
@@ -423,16 +417,16 @@ function evaluateQuery(
       "parameters",
       prepareFunction(query, templateMap)
     );
-    result = Boolean(generatedContent(templateMap.paramValues));
+    result = Boolean(generatedContent(templateMap));
   } catch (e) {
-    console.log("Query Evaluation Error", e, query, templateMap.paramValues);
+    console.log("Query Evaluation Error", e, query, templateMap);
   }
   return result;
 }
 
 function prepareFunction(query: string, templateMap: TemplateMap): string {
   return `
-        ${Object.keys(templateMap.paramValues)
+        ${Object.keys(templateMap)
           .map((key) => key.replace(/(_|\W)/g, ""))
           .map((key) => `const ${key} = parameters.${key}`)
           .join("\n")}
@@ -446,9 +440,9 @@ function tryToComputeKey(query: string, templateMap: TemplateMap): string {
       "parameters",
       prepareFunction(result, templateMap)
     );
-    result = generatedContent(templateMap.paramValues);
+    result = generatedContent(templateMap);
   } catch (e) {
-    console.log("Key Evaluation Error", e, query, templateMap.paramValues);
+    console.log("Key Evaluation Error", e, query, templateMap);
   }
   return `${result}`;
 }
@@ -462,7 +456,7 @@ export function getMissingFields(
   template: Template,
   templateMap: TemplateMap
 ): string[] {
-  const params = templateMap.paramValues;
+  const params = templateMap;
 
   // data target
   const missingFileds = template.widgets
@@ -494,4 +488,34 @@ export function getMissingFields(
     )
     .map((d) => d.name);
   return missingFileds.concat(missingMultiFileds);
+}
+
+export interface RendererProps {
+  spec: any;
+  data: DataRow[];
+  onError: (x: any) => any;
+}
+
+/**
+ * Support for a particular language
+ */
+export interface LanguageExtension {
+  /**
+   * React Component containing the rendering logic for this language
+   */
+  renderer: (props: RendererProps) => JSX.Element;
+  /**
+   * Given a code block and the collection of widgets, try to come up with suggestions to parameterize the code
+   * @param code
+   * @param widgets
+   * @return Suggestions[]
+   */
+  suggestion: (
+    code: string,
+    widgets: GenWidget[],
+    columns: ColumnHeader[]
+  ) => Suggestion[];
+  language: string;
+  blankTemplate: Template;
+  getDataViews: (props: RendererProps) => Promise<any>;
 }
