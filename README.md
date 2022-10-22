@@ -9,24 +9,27 @@ Aiming to be modular, this library does not include the rendering component of t
 The basic idea of the language is that it combines JSON with a series of simple abstraction operations that enable simpler re-usability. Through this language we are able to treat chart specified in JSON-based domain specifics languages as functions, with the content of the function being referred to as the **body** and the arguments being referred to as the **settings**. There are two key abstraction mechanisms within these programs, substitutions and control flow, which we discuss in greater depth below. Before we get into all that, let's look at a toy example
 
 ```js
----- settings
-{"xDim": "Origin", "sort": "false"}
----- body
-{
-  "$schema": "https:vega.github.io/schema/vega-lite/v4.json",
-  "transform": [],
-  "encoding": {
-    "y": {
-        "field": "[xDim]",
-        "type": "nominal",
-        "sort": {"$if": "parameters.sort.includes('true')", "true": "-x"}
+import evaluateIvyProgram from "ivy-language";
+const settings = { xDim: "Origin", sort: "false" };
+const body = {
+  $schema: "https:vega.github.io/schema/vega-lite/v4.json",
+  transform: [],
+  encoding: {
+    y: {
+      field: "[xDim]",
+      type: "nominal",
+      sort: { $if: "parameters.sort.includes('true')", true: "-x" },
     },
-    "x": {"aggregate": "count"}
+    x: { aggregate: "count" },
   },
-  "mark": "bar"
-}
+  mark: "bar",
+};
+const output = evaluateIvyProgram(body, settings);
+```
 
----- output
+Where output equals:
+
+```js
 {
   "$schema": "https:vega.github.io/schema/vega-lite/v4.json",
   "transform": [],
