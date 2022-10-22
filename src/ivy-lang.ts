@@ -6,138 +6,6 @@ import { trim } from "./utils";
  */
 export type DataType = "MEASURE" | "DIMENSION" | "TIME" | "CUSTOM";
 
-export type WidgetType =
-  | "DataTarget"
-  | "MultiDataTarget"
-  | "List"
-  | "Switch"
-  | "Text"
-  | "Slider"
-  | "Section"
-  // | 'Shortcut'
-  | "FreeText";
-export interface Widget<T> {
-  /**
-   *   The name of widget to be used, this name will be swapped into the code string, must be unqiue
-   */
-  name: string;
-  /**
-   * The name to be shown in the GUI, does not have to be unique.
-   */
-  displayName?: string;
-  /**
-   * The type of the widget to be used, this defined the specific gui item that the user interacts with
-   */
-  type: WidgetType;
-  config: T;
-  /**
-   * Sometimes you want to decative certain values depending on the state of the UI
-   * This advanced features allows you to do that
-   */
-  conditions?: Condition[];
-}
-export interface DataTargetWidget {
-  allowedTypes: DataType[];
-  required: boolean;
-}
-export interface MultiDataTargetWidget {
-  allowedTypes: DataType[];
-  minNumberOfTargets?: number;
-  maxNumberOfTargets?: number;
-  required: boolean;
-}
-export interface ListWidget {
-  allowedValues: ({ display: string; value: string } | string)[];
-  defaultValue?: string;
-}
-export interface SwitchWidget {
-  active: string;
-  inactive: string;
-  defaultsToActive: boolean;
-}
-export interface TextWidget {
-  text: string;
-}
-export type SectionWidget = null;
-export interface SliderWidget {
-  minVal: number;
-  maxVal: number;
-  step?: number;
-  defaultValue: number;
-}
-
-export interface Shortcut {
-  label: string;
-  shortcutFunction: string;
-}
-
-export type FreeTextWidget = {
-  useParagraph: boolean;
-};
-export type WidgetSubType =
-  | DataTargetWidget
-  | MultiDataTargetWidget
-  | ListWidget
-  | SwitchWidget
-  | TextWidget
-  | SliderWidget
-  | SectionWidget
-  | FreeTextWidget;
-
-/**
- * The main configuration object for templates
- */
-export interface Template {
-  /**
-   * The language of the code, determines how the code will be interpreted.
-   * Ivy currently supports vega, vega-lite, and it's own data table system
-   *
-   *  __Default value:__ `vega-lite`
-   */
-  templateLanguage: string;
-
-  /**
-   * The name of the template. Template names must be unique, so this can over-ride other extant templates
-   */
-  templateName: string;
-
-  /**
-   * The description that users will see in the chart chooser gallery
-   */
-  templateDescription?: string;
-
-  /**
-   * The creator of the template
-   */
-  templateAuthor: string;
-
-  /**
-   * The code to be interpreted by the renderer
-   */
-  code: string;
-
-  /**
-   * The mechanism by which users interact with your template
-   */
-  widgets: Widget<WidgetSubType>[];
-
-  /**
-   * Advanced tool for providing special extra cards
-   */
-  customCards?: CustomCard[];
-
-  /**
-   * Whether or not to allow view materialization / fan out
-   */
-  disallowFanOut?: boolean;
-}
-
-/**
- * Convience container type for the general template widget case
- */
-export type GenWidget = Widget<WidgetSubType>;
-
-export type CustomCard = { name: string; description: string };
 /**
  * A widget Condition query, executed raw javascript. Parameter values (the value of the current ui)
  * is accessed through parameters.VALUE. E.g. if you wanted to construct a predicate that check if
@@ -165,15 +33,7 @@ export interface Condition {
 
 /* eslint-disable no-new-func */
 export interface TemplateMap {
-  dataTransforms: DataTransform[];
-  [key: string]: string | string[] | DataTransform[];
-}
-
-/**
- * vega transform syntax
- */
-export interface DataTransform {
-  [x: string]: any;
+  [key: string]: string | string[] | null | number;
 }
 
 export interface JsonMap {
@@ -198,15 +58,15 @@ export interface NewIvyConditional {
 
 /**
  *
- * @param template
+ * @param code - string. ivy template as string to be interpreted
  * @param templateMap - the specification/variable values defined by the gui
  */
 export function evaluateIvyProgram(
-  template: Template,
+  code: string,
   templateMap: TemplateMap
 ): Json {
   // 1. apply variables to string representation of code
-  const interpolatedVals = setTemplateValues(template.code, templateMap);
+  const interpolatedVals = setTemplateValues(code, templateMap);
   // 2. parse to json
   let parsedJson = null;
   try {
@@ -217,9 +77,9 @@ export function evaluateIvyProgram(
     parsedJson = {};
   }
   // 3. evaluate inline conditionals
-  const evaluatableSpec = applyConditionals(templateMap)(parsedJson);
+  const spec = applyConditionals(templateMap)(parsedJson);
   // 4. return
-  return evaluatableSpec;
+  return spec;
 }
 
 /**
@@ -275,35 +135,35 @@ export const setTemplateValues = (
 export function applyConditionals(
   templateMap: TemplateMap
 ): (spec: Json) => Json {
-  return function walker(spec: Json): Json {
+  const x = function walker(spec: Json): Json {
     // if it's array iterate across it
     if (Array.isArray(spec)) {
       return spec.reduce((acc: JsonArray, child) => {
         // OLD SYNTAX
         if (child && typeof child === "object" && (child as JsonMap).$cond) {
-          const valuemap = (child as unknown) as IvyLangConditional;
-          const queryResult = evaluateQuery(valuemap.$cond.query, templateMap)
+          const valueMap = (child as unknown) as IvyLangConditional;
+          const queryResult = evaluateQuery(valueMap.$cond.query, templateMap)
             ? "true"
             : "false";
-          if (!shouldUpdateContainerWithValue(queryResult, valuemap.$cond)) {
-            return acc.concat(walker(valuemap.$cond[queryResult] as Json));
+          if (!shouldUpdateContainerWithValue(queryResult, valueMap.$cond)) {
+            return acc.concat(walker(valueMap.$cond[queryResult] as Json));
           } else {
             return acc;
           }
         }
         // NEW SYNTAX
         if (child && typeof child === "object" && (child as JsonMap).$if) {
-          const valuemap = (child as unknown) as NewIvyConditional;
-          const queryResult = evaluateQuery(valuemap.$if, templateMap)
+          const valueMap = (child as unknown) as NewIvyConditional;
+          const queryResult = evaluateQuery(valueMap.$if, templateMap)
             ? "true"
             : "false";
           if (
             !shouldUpdateContainerWithValue(
               queryResult,
-              (valuemap as unknown) as ConditionalArgs
+              (valueMap as unknown) as ConditionalArgs
             )
           ) {
-            return acc.concat(walker(valuemap[queryResult] as Json));
+            return acc.concat(walker(valueMap[queryResult] as Json));
           } else {
             return acc;
           }
@@ -318,29 +178,29 @@ export function applyConditionals(
     // if the object being consider is itself a conditional evaluate it
     // OLD SYNTAX
     if (typeof spec === "object" && spec.$cond) {
-      const valuemap = (spec as unknown) as IvyLangConditional;
-      const queryResult = evaluateQuery(valuemap.$cond.query, templateMap)
+      const valueMap = (spec as unknown) as IvyLangConditional;
+      const queryResult = evaluateQuery(valueMap.$cond.query, templateMap)
         ? "true"
         : "false";
-      if (!shouldUpdateContainerWithValue(queryResult, valuemap.$cond)) {
-        return walker(valuemap.$cond[queryResult] as Json);
+      if (!shouldUpdateContainerWithValue(queryResult, valueMap.$cond)) {
+        return walker(valueMap.$cond[queryResult] as Json);
       } else {
         return null;
       }
     }
     // NEW SYNTAX
     if (typeof spec === "object" && spec.$if) {
-      const valuemap = (spec as unknown) as NewIvyConditional;
-      const queryResult = evaluateQuery(valuemap.$if, templateMap)
+      const valueMap = (spec as unknown) as NewIvyConditional;
+      const queryResult = evaluateQuery(valueMap.$if, templateMap)
         ? "true"
         : "false";
       if (
         !shouldUpdateContainerWithValue(
           queryResult,
-          (valuemap as unknown) as ConditionalArgs
+          (valueMap as unknown) as ConditionalArgs
         )
       ) {
-        return walker(valuemap[queryResult] as Json);
+        return walker(valueMap[queryResult] as Json);
       } else {
         return null;
       }
@@ -355,12 +215,12 @@ export function applyConditionals(
         if (value && typeof value === "object" && (value as JsonMap).$cond) {
           // OLD SYNTAX
           // if it's a conditional, if so execute the conditional
-          const valuemap = (value as unknown) as IvyLangConditional;
-          const queryResult = evaluateQuery(valuemap.$cond.query, templateMap)
+          const valueMap = (value as unknown) as IvyLangConditional;
+          const queryResult = evaluateQuery(valueMap.$cond.query, templateMap)
             ? "true"
             : "false";
-          if (!shouldUpdateContainerWithValue(queryResult, valuemap.$cond)) {
-            acc[computedKey] = walker(valuemap.$cond[queryResult] as Json);
+          if (!shouldUpdateContainerWithValue(queryResult, valueMap.$cond)) {
+            acc[computedKey] = walker(valueMap.$cond[queryResult] as Json);
           }
         } else if (
           value &&
@@ -369,17 +229,17 @@ export function applyConditionals(
         ) {
           // NEW SYNTAX
           // if it's a conditional, if so execute the conditional
-          const valuemap = (value as unknown) as NewIvyConditional;
-          const queryResult = evaluateQuery(valuemap.$if, templateMap)
+          const valueMap = (value as unknown) as NewIvyConditional;
+          const queryResult = evaluateQuery(valueMap.$if, templateMap)
             ? "true"
             : "false";
           if (
             !shouldUpdateContainerWithValue(
               queryResult,
-              (valuemap as unknown) as ConditionalArgs
+              (valueMap as unknown) as ConditionalArgs
             )
           ) {
-            acc[computedKey] = walker(valuemap[queryResult] as Json);
+            acc[computedKey] = walker(valueMap[queryResult] as Json);
           }
         } else {
           acc[computedKey] = walker(value);
@@ -389,6 +249,7 @@ export function applyConditionals(
       {}
     );
   };
+  return x;
 }
 
 function shouldUpdateContainerWithValue(
@@ -445,77 +306,4 @@ function tryToComputeKey(query: string, templateMap: TemplateMap): string {
     console.log("Key Evaluation Error", e, query, templateMap);
   }
   return `${result}`;
-}
-
-/**
- * Generate a list of the missing fields on a template
- * @param template
- * @param templateMap - the specification/variable values defined by the gui
- */
-export function getMissingFields(
-  template: Template,
-  templateMap: TemplateMap
-): string[] {
-  const params = templateMap;
-
-  // data target
-  const missingFileds = template.widgets
-    .filter(
-      (d) =>
-        d.type === "DataTarget" &&
-        (d as Widget<DataTargetWidget>).config.required
-    )
-    .filter((d) => !params[d.name])
-    .map((d) => d.name);
-
-  // multi data target
-  const missingMultiFileds = template.widgets
-    .filter(
-      (d) =>
-        d.type === "MultiDataTarget" &&
-        (d as Widget<MultiDataTargetWidget>).config.required
-    )
-    // .filter(
-    //   (widget: Widget<MultiDataTargetWidget>) =>
-    //     !params[widget.name] ||
-    //     params[widget.name].length < widget.config.minNumberOfTargets
-    // )
-
-    .filter(
-      (widget: any) =>
-        !params[widget.name] ||
-        params[widget.name].length < widget.config.minNumberOfTargets
-    )
-    .map((d) => d.name);
-  return missingFileds.concat(missingMultiFileds);
-}
-
-export interface RendererProps {
-  spec: any;
-  data: DataRow[];
-  onError: (x: any) => any;
-}
-
-/**
- * Support for a particular language
- */
-export interface LanguageExtension {
-  /**
-   * React Component containing the rendering logic for this language
-   */
-  renderer: (props: RendererProps) => JSX.Element;
-  /**
-   * Given a code block and the collection of widgets, try to come up with suggestions to parameterize the code
-   * @param code
-   * @param widgets
-   * @return Suggestions[]
-   */
-  suggestion: (
-    code: string,
-    widgets: GenWidget[],
-    columns: ColumnHeader[]
-  ) => Suggestion[];
-  language: string;
-  blankTemplate: Template;
-  getDataViews: (props: RendererProps) => Promise<any>;
 }

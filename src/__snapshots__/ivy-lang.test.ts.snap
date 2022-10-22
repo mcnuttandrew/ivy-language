@@ -1,0 +1,200 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`#applyConditionals 1`] = `
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+  "config": {
+    "mark": {
+      "invalid": null,
+    },
+  },
+  "layer": [
+    {
+      "encoding": {
+        "y": {
+          "field": "[yDim]",
+          "type": "quantitative",
+        },
+      },
+      "mark": {
+        "extent": "stdev",
+        "opacity": 0.2,
+        "type": "errorband",
+      },
+    },
+    {
+      "encoding": {
+        "y": {
+          "aggregate": "mean",
+          "field": "[yDim]",
+          "type": "quantitative",
+        },
+      },
+      "mark": "rule",
+    },
+    {
+      "encoding": {
+        "color": {
+          "condition": {
+            "test": "datum["[xDim]"] === null || datum["[yDim]"] === null",
+            "value": "#aaa",
+          },
+        },
+        "x": {
+          "field": "[xDim]",
+          "scale": {
+            "zero": "[Zeroes]",
+          },
+          "type": "[xType]",
+        },
+        "y": {
+          "field": "[yDim]",
+          "scale": {
+            "zero": "[Zeroes]",
+          },
+          "type": "[yType]",
+        },
+      },
+      "mark": {
+        "color": "[Single Color]",
+        "size": "[Radius]",
+        "tooltip": true,
+        "type": "point",
+      },
+    },
+  ],
+}
+`;
+
+exports[`#applyConditionals 2`] = `
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+  "config": {
+    "mark": {
+      "invalid": null,
+    },
+  },
+  "layer": [
+    {
+      "encoding": {
+        "y": {
+          "field": "[yDim]",
+          "type": "quantitative",
+        },
+      },
+      "mark": {
+        "extent": "stdev",
+        "opacity": 0.2,
+        "type": "errorband",
+      },
+    },
+    {
+      "encoding": {
+        "y": {
+          "aggregate": "mean",
+          "field": "[yDim]",
+          "type": "quantitative",
+        },
+      },
+      "mark": "rule",
+    },
+    {
+      "encoding": {
+        "color": {
+          "condition": {
+            "test": "datum["[xDim]"] === null || datum["[yDim]"] === null",
+            "value": "#aaa",
+          },
+          "field": "[Color]",
+          "type": "[colorType]",
+        },
+        "x": {
+          "field": "[xDim]",
+          "scale": {
+            "zero": "[Zeroes]",
+          },
+          "type": "[xType]",
+        },
+        "y": {
+          "field": "[yDim]",
+          "scale": {
+            "zero": "[Zeroes]",
+          },
+          "type": "[yType]",
+        },
+      },
+      "mark": {
+        "color": null,
+        "size": "[Radius]",
+        "tooltip": true,
+        "type": "point",
+      },
+    },
+  ],
+}
+`;
+
+exports[`evaluateIvyProgram polestar template 1`] = `
+{
+  "$schema": "https:vega.github.io/schema/vega-lite/v4.json",
+  "encoding": {},
+  "mark": {
+    "opacity": 0.8,
+    "tooltip": true,
+    "type": "point",
+  },
+  "transform": [],
+}
+`;
+
+exports[`evaluateIvyProgram polestar template 2`] = `
+{
+  "$schema": "https:vega.github.io/schema/vega-lite/v4.json",
+  "encoding": {
+    "x": {
+      "field": "GooD Dimension",
+      "scale": {
+        "type": "linear",
+        "zero": false,
+      },
+      "type": "quantitative",
+    },
+  },
+  "mark": {
+    "opacity": 0.8,
+    "tooltip": true,
+    "type": "point",
+  },
+  "transform": [],
+}
+`;
+
+exports[`evaluateIvyProgram polestar template 3`] = `
+{
+  "$schema": "https:vega.github.io/schema/vega-lite/v4.json",
+  "encoding": {
+    "x": {
+      "field": "Origin",
+      "scale": {},
+      "type": "nominal",
+    },
+  },
+  "mark": {
+    "opacity": 0.8,
+    "tooltip": true,
+    "type": "point",
+  },
+  "transform": [],
+}
+`;
+
+exports[`evaluateIvyProgram polestar template 4`] = `
+{
+  "$schema": "galleryLang",
+  "SearchKey": "should result",
+  "dataTargetSearch": [],
+  "maxRequiredTargets": "[maxRequiredTargets]",
+  "minRequiredTargets": "[minRequiredTargets]",
+  "sectionStratagey": "[sectionStratagey]",
+}
+`;
