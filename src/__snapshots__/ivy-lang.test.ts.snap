@@ -187,14 +187,3 @@ exports[`evaluateIvyProgram polestar template 3`] = `
   "transform": [],
 }
 `;
-
-exports[`evaluateIvyProgram polestar template 4`] = `
-{
-  "$schema": "galleryLang",
-  "SearchKey": "should result",
-  "dataTargetSearch": [],
-  "maxRequiredTargets": "[maxRequiredTargets]",
-  "minRequiredTargets": "[minRequiredTargets]",
-  "sectionStratagey": "[sectionStratagey]",
-}
-`;

@@ -30,11 +30,10 @@ test("#applyConditionals", () => {
     showNulls: "true",
   };
   const output = applyConditionals(exampleTemplateMap2)(PARSED_CODE);
-  console.log(JSON.stringify(output, null, 2));
   expect(output).toMatchSnapshot();
 });
 
-test.only("evaluateIvyProgram polestar template", () => {
+test("evaluateIvyProgram polestar template", () => {
   const templateMap = PolestarDefaultParams;
 
   expect(evaluateIvyProgram(POLESTAR_BODY, templateMap)).toMatchSnapshot();
