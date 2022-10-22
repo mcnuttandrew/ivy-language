@@ -5,24 +5,6 @@
  */
 export type ConditionQuery = string;
 
-/**
- * What to do in response to the result of the query, should be either 'hide' or 'show'
- */
-export type QueryResult = "show" | "hide";
-export interface Condition {
-  /**
-   * What to do in response to the result of the query, should be either 'hide' or 'show'
-   */
-  queryResult: QueryResult;
-
-  /**
-   * A widget Condition query, executed raw javascript. Parameter values (the value of the current ui)
-   * is accessed through parameters.VALUE. E.g. if you wanted to construct a predicate that check if
-   * there wasn't a current value for the x dimension called xDim you could do "!parameters.xDim"
-   */
-  query: string;
-}
-
 /* eslint-disable no-new-func */
 export interface TemplateMap {
   [key: string]: string | string[] | null | number;
