@@ -1,6 +1,6 @@
 # Ivy Language
 
-This is an exported version of the evaluator for the [Ivy](https://github.com/mcnuttandrew/ivy) template language.
+This is an extracted version of the evaluator for the [Ivy](https://github.com/mcnuttandrew/ivy) template language.
 It exposes one method, `evaluateIvyProgram`, which takes the body of an Ivy template (as a JSON formatted string) as well as an object to apply to that body, and returns a JavaScript Object.
 It has a type signature like `evaluateIvyProgram(body: string, settings: Record<string, any>) => Json`.
 
@@ -10,7 +10,8 @@ Aiming to be modular, this library does not include the rendering component of t
 
 The basic idea of the language is that it combines JSON with a series of simple abstraction operations that enable simpler re-usability.
 Through this language we are able to treat charts specified in JSON-based domain specifics languages as functions, with the content of the function being referred to as the **body** and the arguments being referred to as the **settings**.
-There are two key abstraction mechanisms within these programs, substitutions and control flow, which we discuss in greater depth below. 
+
+There are two key abstraction mechanisms within these programs, substitutions and control flow, which we discuss in greater depth below.
 
 ## Example
 
@@ -71,7 +72,7 @@ Additional examples can be found in the [tests](./src/__tests__).
 
 Substitutions are the bread and butter of the Ivy Template Language.
 They enable the template designer to slot in lots of different types of values into the body.
-Aywhere in the template body where there is a match between a key name, such as `xDim`, in the settings and a string in the body, such as `"[xDim]"`, the matching string is replaced with the corresponding value in from the settings.
+Anywhere in the template body where there is a match between a key name, such as `xDim`, in the settings and a string in the body, such as `"[xDim]"`, the matching string is replaced with the corresponding value in from the settings.
 
 ## Control Flow with conditionals
 
@@ -101,6 +102,6 @@ Here are a few recipes:
 **VALUE_IF_TRUE** / **VALUE_IF_FALSE**: These optional values are the values taken on by the conditional if the query results in true or false. 
 These values can be anything: arrays, objects, numbers, strings, other conditionals. As long as it's a valid Ivy template language snippet than it's valid.
 
-_An import special behavior note_: the true and false branches are optional. Typically if the conditional encounters a query that results in a path that is not defined then it will remove that conditional. If the conditional is the value of a key-value pair (as in an object) it will delete the key, if it is an array, that cell will be removed. We saw an example of this in the example at the top of the page.
+_An important special behavior note_: the true and false branches are optional. Typically if the conditional encounters a query that results in a path that is not defined then it will remove that conditional. If the conditional is the value of a key-value pair (as in an object) it will delete the key, if it is an array, that cell will be removed. We saw an example of this in the example at the top of the page.
 
 An important gotcha here is that the values of the parameters object should all be treated as strings.
